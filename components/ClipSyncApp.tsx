@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Clipboard, Database, Wifi, WifiOff, ArrowRight, Zap } from 'lucide-react'
 
 function subscribeToHostChange() {
-  return () => {}
+  return () => { }
 }
 
 function getBrowserHost() {
@@ -65,7 +65,7 @@ export function ClipSyncApp() {
               )}
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white tracking-tight">ClipSync</h1>
+              <h1 className="text-xl font-bold text-white tracking-tight">klipboard</h1>
               <p className="text-xs text-slate-400">Real-time clipboard bridge</p>
             </div>
           </div>

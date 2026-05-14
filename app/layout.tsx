@@ -8,7 +8,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'ClipSync — Real-time Clipboard Bridge',
+  title: 'klipboard — Real-time Clipboard Bridge',
   description: 'Sync your Windows clipboard to any browser on the same LAN in real time. Share text and code blocks across devices instantly.',
 }
 

@@ -6,6 +6,7 @@ require('dotenv').config()
 
 const { createServer } = require('http')
 const { parse } = require('url')
+const os = require('os')
 const next = require('next')
 const { WebSocketServer, WebSocket } = require('ws')
 const clipboardy = require('clipboardy')
@@ -165,9 +166,55 @@ app.prepare().then(() => {
   }
 
   const PORT = process.env.PORT || 3000
+
+  // Get local LAN IP, prioritizing WiFi adapters
+  function getLocalIP() {
+    const interfaces = os.networkInterfaces()
+    const wifiNames = ['Wi-Fi', 'Wireless', 'wlan', 'wifi']
+    const ethernetNames = ['Ethernet', 'eth']
+    const virtualNames = ['vEthernet', 'VMware', 'VirtualBox', 'docker', 'Hyper-V']
+
+    // First pass: Look for WiFi adapters
+    for (const name of Object.keys(interfaces)) {
+      if (wifiNames.some(wifi => name.toLowerCase().includes(wifi.toLowerCase()))) {
+        for (const iface of interfaces[name]) {
+          if (iface.family === 'IPv4' && !iface.internal) {
+            return iface.address
+          }
+        }
+      }
+    }
+
+    // Second pass: Look for Ethernet adapters
+    for (const name of Object.keys(interfaces)) {
+      if (ethernetNames.some(eth => name.toLowerCase().includes(eth.toLowerCase()))) {
+        for (const iface of interfaces[name]) {
+          if (iface.family === 'IPv4' && !iface.internal) {
+            return iface.address
+          }
+        }
+      }
+    }
+
+    // Third pass: Any non-virtual, non-internal IPv4 address
+    for (const name of Object.keys(interfaces)) {
+      if (!virtualNames.some(virt => name.toLowerCase().includes(virt.toLowerCase()))) {
+        for (const iface of interfaces[name]) {
+          if (iface.family === 'IPv4' && !iface.internal) {
+            return iface.address
+          }
+        }
+      }
+    }
+
+    return 'localhost'
+  }
+
+  const lanIP = getLocalIP()
+
   server.listen(PORT, '0.0.0.0', () => {
-    console.log(`\n  ✦ ClipSync running on http://localhost:${PORT}`)
-    console.log(`  ✦ LAN access: http://<your-ip>:${PORT}`)
+    console.log(`\n  ✦ klipboard running on http://localhost:${PORT}`)
+    console.log(`  ✦ LAN access: http://${lanIP}:${PORT}`)
     console.log(`  ✦ WebSocket on same port\n`)
   })
 })
