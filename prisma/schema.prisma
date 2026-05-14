@@ -1,0 +1,22 @@
+// prisma/schema.prisma
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+  output          = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Block {
+  id        Int      @id @default(autoincrement())
+  label     String
+  content   String
+  isCode    Boolean  @default(false)
+  language  String?
+  date      String   // ISO date string "YYYY-MM-DD" for day-wise grouping
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
