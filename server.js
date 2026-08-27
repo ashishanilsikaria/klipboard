@@ -165,7 +165,43 @@ app.prepare().then(() => {
     return Object.entries(map).map(([date, blocks]) => ({ date, blocks }))
   }
 
-  const PORT = process.env.PORT || 3000
+  const requestedPort = Number(process.env.PORT || 3000)
+  const allowPortFallback = !process.env.PORT
+  const maxPortAttempts = 10
+  let activePort = Number.isFinite(requestedPort) ? requestedPort : 3000
+  let startupLogged = false
+
+  function logStartup() {
+    if (startupLogged) {
+      return
+    }
+
+    startupLogged = true
+    console.log(`\n  ✦ klipboard running on http://localhost:${activePort}`)
+    console.log(`  ✦ LAN access: http://${lanIP}:${activePort}`)
+    console.log(`  ✦ WebSocket on same port\n`)
+  }
+
+  function startServer(port, attempt = 0) {
+    activePort = port
+
+    const onListenError = (err) => {
+      if (err.code === 'EADDRINUSE' && allowPortFallback && attempt < maxPortAttempts) {
+        const nextPort = port + 1
+        console.warn(`[server] Port ${port} is in use, trying ${nextPort}`)
+        startServer(nextPort, attempt + 1)
+        return
+      }
+
+      throw err
+    }
+
+    server.once('error', onListenError)
+    server.listen(port, '0.0.0.0', () => {
+      server.removeListener('error', onListenError)
+      logStartup()
+    })
+  }
 
   // Get local LAN IP, prioritizing WiFi adapters
   function getLocalIP() {
@@ -212,9 +248,5 @@ app.prepare().then(() => {
 
   const lanIP = getLocalIP()
 
-  server.listen(PORT, '0.0.0.0', () => {
-    console.log(`\n  ✦ klipboard running on http://localhost:${PORT}`)
-    console.log(`  ✦ LAN access: http://${lanIP}:${PORT}`)
-    console.log(`  ✦ WebSocket on same port\n`)
-  })
+  startServer(activePort)
 })
